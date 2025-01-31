@@ -1,31 +1,78 @@
 services:
-  clickhouse:
-    image: clickhouse/clickhouse-server:latest
+  keeper:
+    image: clickhouse/clickhouse-keeper:24.12.2
+    restart: unless-stopped
+    volumes:
+      - keeper_data:/var/lib/clickhouse
+    ports:
+      - "9181:9181"
+
+  clickhouse1:
+    image: clickhouse/clickhouse-server:24.12.2
+    restart: unless-stopped
+    volumes:
+      - ./docker/clickhouse/config-extra.yaml:/etc/clickhouse-server/config.d/config-extra.yaml
+      - ./docker/clickhouse/:/etc/clickhouse-server/users.d/
+      - clickhouse1_data:/var/lib/clickhouse
     ports:
       - "8123:8123"
       - "9000:9000"
-    volumes:
-      - clickhouse_data:/var/lib/clickhouse
-      - ./docker/clickhouse:/etc/clickhouse-server/config.d
-      - ./docker/logs/clickhouse:/var/log/clickhouse-server
     depends_on:
       - keeper
-    restart: unless-stopped
+    environment:
+      - CLICKHOUSE_MACROS_SHARD=1
+      - CLICKHOUSE_MACROS_REPLICA=1
 
-  keeper:
-    image: clickhouse/clickhouse-keeper:latest
-    ports:
-      - "9181:9181"
-    volumes:
-      - keeper_data:/var/lib/clickhouse-keeper
-      - ./docker/keeper:/etc/clickhouse-keeper
+  clickhouse2:
+    image: clickhouse/clickhouse-server:24.12.2
     restart: unless-stopped
+    volumes:
+      - ./docker/clickhouse/config-extra.yaml:/etc/clickhouse-server/config.d/config-extra.yaml
+      - ./docker/clickhouse/config-users.yaml:/etc/clickhouse-server/users.d/config-users.yaml
+      - clickhouse2_data:/var/lib/clickhouse
+    ports:
+      - "8124:8123"
+      - "9001:9000"
+    depends_on:
+      - keeper
+    environment:
+      - CLICKHOUSE_MACROS_SHARD=1
+      - CLICKHOUSE_MACROS_REPLICA=2
+
+  clickhouse3:
+    image: clickhouse/clickhouse-server:24.12.2
+    restart: unless-stopped
+    volumes:
+      - ./docker/clickhouse/config-extra.yaml:/etc/clickhouse-server/config.d/config-extra.yaml
+      - ./docker/clickhouse/config-users.yaml:/etc/clickhouse-server/users.d/config-users.yaml
+      - clickhouse3_data:/var/lib/clickhouse
+    ports:
+      - "8125:8123"
+      - "9002:9000"
+    depends_on:
+      - keeper
+    environment:
+      - CLICKHOUSE_MACROS_SHARD=2
+      - CLICKHOUSE_MACROS_REPLICA=1
+
+  clickhouse4:
+    image: clickhouse/clickhouse-server:24.12.2
+    restart: unless-stopped
+    volumes:
+      - ./docker/clickhouse/config-extra.yaml:/etc/clickhouse-server/config.d/config-extra.yaml
+      - ./docker/clickhouse/config-users.yaml:/etc/clickhouse-server/users.d/config-users.yaml
+      - clickhouse4_data:/var/lib/clickhouse
+    ports:
+      - "8126:8123"
+      - "9003:9000"
+    depends_on:
+      - keeper
+    environment:
+      - CLICKHOUSE_MACROS_SHARD=2
+      - CLICKHOUSE_MACROS_REPLICA=2
 
   jaeger:
-    image: jaegertracing/all-in-one:1.64.0
-    command:
-      - "--memory.max-traces=25000"
-      - "--query.base-path=/jaeger/ui"
+    image: jaegertracing/all-in-one:1.53
     restart: unless-stopped
     ports:
       - "16686:16686"
@@ -35,32 +82,24 @@ services:
 
   grafana:
     image: grafana/grafana:11.4.0
-    container_name: grafana
     restart: unless-stopped
-    environment:
-      - "GF_INSTALL_PLUGINS=vertamedia-clickhouse-datasource"
     volumes:
       - grafana_data:/var/lib/grafana
       - ./docker/grafana/provisioning/:/etc/grafana/provisioning/
     ports:
       - "3000:3000"
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - "GF_INSTALL_PLUGINS=vertamedia-clickhouse-datasource"
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
     depends_on:
-      - clickhouse
-
-  # collector:
-  #   image: otel/opentelemetry-collector-contrib:0.102.1
-  #   restart: unless-stopped
-  #   command: [ "--config=/etc/config.yml" ]
-  #   volumes:
-  #     - ./docker/collector/config.yml:/etc/config.yml
-  #   ports:
-  #     - "4317"
-  #     - "4318"
-  #   depends_on:
-  #     - jaeger
+      - clickhouse1
 
 volumes:
   keeper_data:
-  clickhouse_data:
   grafana_data:
-  prometheus_data:
+  clickhouse1_data:
+  clickhouse2_data:
+  clickhouse3_data:
+  clickhouse4_data:

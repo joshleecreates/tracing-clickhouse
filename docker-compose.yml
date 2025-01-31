@@ -5,13 +5,9 @@ services:
       - "8123:8123"
       - "9000:9000"
     volumes:
-      # - clickhouse_data:/var/lib/clickhouse
-      - ./docker/config.d:/etc/clickhouse-server/config.d
+      - clickhouse_data:/var/lib/clickhouse
+      - ./docker/clickhouse:/etc/clickhouse-server/config.d
       - ./docker/logs/clickhouse:/var/log/clickhouse-server
-    # environment:
-    #   - CLICKHOUSE_DATABASE=${CLICKHOUSE_DATABASE}
-    #   - CLICKHOUSE_USER=${CLICKHOUSE_USER}
-    #   - CLICKHOUSE_PASSWORD=${CLICKHOUSE_PASSWORD}
     depends_on:
       - keeper
     restart: unless-stopped
@@ -22,8 +18,20 @@ services:
       - "9181:9181"
     volumes:
       - keeper_data:/var/lib/clickhouse-keeper
-      - ./docker/keeper.d:/etc/clickhouse-keeper
+      - ./docker/keeper:/etc/clickhouse-keeper
     restart: unless-stopped
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.64.0
+    command:
+      - "--memory.max-traces=25000"
+      - "--query.base-path=/jaeger/ui"
+    restart: unless-stopped
+    ports:
+      - "16686:16686"
+      - "14268:14268"
+      - "4317:4317"
+      - "4318:4318"
 
   grafana:
     image: grafana/grafana:11.4.0
@@ -36,8 +44,23 @@ services:
       - ./docker/grafana/provisioning/:/etc/grafana/provisioning/
     ports:
       - "3000:3000"
+    depends_on:
+      - clickhouse
+
+  # collector:
+  #   image: otel/opentelemetry-collector-contrib:0.102.1
+  #   restart: unless-stopped
+  #   command: [ "--config=/etc/config.yml" ]
+  #   volumes:
+  #     - ./docker/collector/config.yml:/etc/config.yml
+  #   ports:
+  #     - "4317"
+  #     - "4318"
+  #   depends_on:
+  #     - jaeger
 
 volumes:
   keeper_data:
   clickhouse_data:
   grafana_data:
+  prometheus_data:

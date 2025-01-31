@@ -1,0 +1,5 @@
+zookeeper:
+  node:
+    host: keeper
+    port: 9181
+listen_host: "0.0.0.0"

@@ -1,6 +1,0 @@
-profiles:
-  default:
-    log_queries: 1
-    opentelemetry_start_trace_probability: 1
-
-

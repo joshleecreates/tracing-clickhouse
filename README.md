@@ -61,7 +61,16 @@ AS SELECT
     (start_time_us / 1000) / 1000 AS Timestamp,
     ((finish_time_us - start_time_us) / 1000) / 1000 AS Duration,
     attribute AS SpanAttributes,
-    mapUpdate(attribute, map('server.address', toString(hostname))) AS ResourceAttributes
+    mapUpdate(
+        mapUpdate(
+            mapUpdate(
+                attribute, 
+                map('server.address', toString(hostname))
+            ),
+            map('server.shard', getMacro('shard'))
+        ),
+        map('server.replica', getMacro('replica'))
+    ) AS ResourceAttributes
 FROM system.opentelemetry_span_log 
 ```
 

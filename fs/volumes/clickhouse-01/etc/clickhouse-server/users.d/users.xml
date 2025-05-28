@@ -7,6 +7,13 @@
             <load_balancing>in_order</load_balancing>
             <log_queries>1</log_queries>
         </default>
+        <readonly>
+            <readonly>1</readonly>
+        </readonly>
+        <otel>
+            <log_queries>1</log_queries>
+            <opentelemetry_start_trace_probability>1</opentelemetry_start_trace_probability>
+        </otel>
     </profiles>
     <users>
         <default>
@@ -21,6 +28,22 @@
             <show_named_collections>1</show_named_collections>
             <show_named_collections_secrets>1</show_named_collections_secrets>
         </default>
+        <grafana>
+            <password>grafana</password>
+            <profile>readonly</profile>
+            <networks>
+                <ip>::/0</ip>
+            </networks>
+            <quota>default</quota>
+        </grafana>
+        <otel>
+            <password>otel</password>
+            <profile>otel</profile>
+            <networks>
+                <ip>::/0</ip>
+            </networks>
+            <quota>default</quota>
+        </otel>
     </users>
     <quotas>
         <default>

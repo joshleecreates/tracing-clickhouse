@@ -3,60 +3,66 @@ CREATE TABLE IF NOT EXISTS default.distributed_opentelemetry_span_log ON CLUSTER
 AS system.opentelemetry_span_log
 ENGINE = Distributed('cluster_1S_2R', 'system', 'opentelemetry_span_log', rand());
 
+-- Create a view for trace ID timestamps
+CREATE OR REPLACE VIEW default.otel_traces_trace_id_ts ON CLUSTER 'cluster_1S_2R'
+(
+    `TraceId` UUID,
+    `Start` UInt64,
+    `End` UInt64
+)
+AS SELECT
+    trace_id AS TraceId,
+    min(start_time_us / 1000) AS Start,
+    max(finish_time_us  / 1000) AS End
+FROM default.distributed_opentelemetry_span_log
+GROUP BY TraceId;
+
 -- Create a view for easier querying of trace data
-CREATE OR REPLACE VIEW default.otel_traces ON CLUSTER 'cluster_1S_2R' AS
-SELECT
+CREATE OR REPLACE VIEW default.otel_traces ON CLUSTER 'cluster_1S_2R'
+(
+    `TraceId` UUID,
+    `SpanId` UInt64,
+    `ParentSpanId` UInt64,
+    `ServiceName` String,
+    `SpanName` LowCardinality(String),
+    `Timestamp` Float64,
+    `Duration` Float64,
+    `SpanAttributes` Map(LowCardinality(String), String),
+    `ResourceAttributes` Map(LowCardinality(String), String),
+    `Hostname` String,
+    `Shard` String,
+    `Replica` String
+)
+AS SELECT
     trace_id AS TraceId,
     span_id AS SpanId,
     parent_span_id AS ParentSpanId,
+    'ClickHouse' AS ServiceName,
     operation_name AS SpanName,
-    service_name AS ServiceName,
-    start_time_us / 1000000 AS Timestamp,
-    (finish_time_us - start_time_us) AS Duration,
+    (start_time_us / 1000) AS Timestamp,
+    ((finish_time_us - start_time_us) / 1000) AS Duration,
     attribute AS SpanAttributes,
-    resource AS ResourceAttributes
-FROM default.distributed_opentelemetry_span_log;
+    mapUpdate(
+        attribute,
+        map('server.address', toString(hostname))
+    ) AS ResourceAttributes,
+    hostname AS Hostname,
+    _shard_num AS Shard
+FROM clusterAllReplicas('{cluster}', system.opentelemetry_span_log);
 
--- Create a view for trace spans with proper formatting for Grafana
-CREATE OR REPLACE VIEW default.otel_spans ON CLUSTER 'cluster_1S_2R' AS
+-- Example query for retrieving trace data in a format compatible with Jaeger:
+/*
 SELECT
-    TraceId,
-    SpanId,
-    ParentSpanId,
-    ServiceName,
-    SpanName as OperationName,
-    Timestamp as StartTime,
-    Duration,
-    SpanAttributes,
-    ResourceAttributes
-FROM default.otel_traces;
-
--- Create a view for service metrics
-CREATE OR REPLACE VIEW default.otel_service_metrics ON CLUSTER 'cluster_1S_2R' AS
-SELECT
-    ServiceName,
-    SpanName,
-    toStartOfMinute(toDateTime(Timestamp)) AS TimeMinute,
-    count() AS SpanCount,
-    avg(Duration) AS AvgDuration,
-    min(Duration) AS MinDuration,
-    max(Duration) AS MaxDuration
-FROM default.otel_traces
-GROUP BY ServiceName, SpanName, TimeMinute
-ORDER BY TimeMinute DESC;
-
--- Create a view for error traces
-CREATE OR REPLACE VIEW default.otel_error_traces ON CLUSTER 'cluster_1S_2R' AS
-SELECT *
-FROM default.otel_traces
-WHERE has(SpanAttributes, 'error') OR has(SpanAttributes, 'error.message');
-
--- Create a helper view for trace ID timestamps
-CREATE OR REPLACE VIEW default.otel_traces_trace_id_ts ON CLUSTER 'cluster_1S_2R' AS
-SELECT
-    TraceId,
-    min(Timestamp) AS Start,
-    max(Timestamp + Duration / 1000000) AS End,
-    toDate(max(Timestamp + Duration / 1000000)) AS finish_date
-FROM default.otel_traces
-GROUP BY TraceId;
+    lower(hex(trace_id)) AS traceId,
+    multiIf(parent_span_id = 0, '', lower(hex(parent_span_id))) AS parentId,
+    lower(hex(span_id)) AS id,
+    operation_name AS name,
+    start_time_us AS timestamp,
+    finish_time_us - start_time_us AS duration,
+    CAST(tuple('clickhouse'), 'Tuple(serviceName text)') AS localEndpoint,
+    attribute['clickhouse.thread_num'], -- get value of this map
+    hostname,
+    shard_num,
+    replica_num
+FROM default.distributed_opentelemetry_span_log
+*/

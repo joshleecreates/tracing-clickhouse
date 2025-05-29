@@ -18,13 +18,13 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 2,
+  "id": 5,
   "links": [],
   "panels": [
     {
       "datasource": {
         "type": "vertamedia-clickhouse-datasource",
-        "uid": "aebna5kluoqv4d"
+        "uid": "${datasource}"
       },
       "fieldConfig": {
         "defaults": {
@@ -69,8 +69,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               }
             ]
           }
@@ -167,11 +166,12 @@
           "showLegend": true
         },
         "tooltip": {
+          "hideZeros": false,
           "mode": "single",
           "sort": "none"
         }
       },
-      "pluginVersion": "11.4.0",
+      "pluginVersion": "12.0.0",
       "targets": [
         {
           "adHocFilters": [],
@@ -180,8 +180,8 @@
           "contextWindowSize": "10",
           "database": "default",
           "datasource": {
-            "type": "grafana-clickhouse-datasource",
-            "uid": "clickhouse-traces"
+            "type": "vertamedia-clickhouse-datasource",
+            "uid": "${DS_VERTAMEDIA-CLICKHOUSE-DATASOURCE}"
           },
           "dateTimeColDataType": "Timestamp",
           "dateTimeType": "FLOAT",
@@ -223,7 +223,7 @@
           "pluginVersion": "4.0.6",
           "query": "SELECT $timeSeries as t, count() FROM $table WHERE $timeFilter GROUP BY t ORDER BY t",
           "queryType": "table",
-          "rawQuery": "/* grafana dashboard=ClickHouse Otel Demo, user=1 */\nSELECT (intDiv(Timestamp * 1000, (10 * 1000)) * (10 * 1000)) as t, count() FROM default.otel_traces WHERE finish_date >= toDate(1738317933) AND finish_date <= toDate(1738328733) AND Timestamp >= 1738317933 AND Timestamp <= 1738328733 GROUP BY t ORDER BY t",
+          "rawQuery": "/* grafana dashboard=ClickHouse Otel Demo, user=1 */\nSELECT (intDiv(Timestamp * 1000, (5 * 1000)) * (5 * 1000)) as t, count() FROM default.otel_traces WHERE Timestamp >= 1738317941 AND Timestamp <= 1738328741 GROUP BY t ORDER BY t",
           "rawSql": "SELECT\r\n  min(Timestamp) as timestamp,\r\n  TraceId as `Trace ID`,\r\n  argMin(ServiceName, Timestamp) as `Service Name`,\r\n  divide(max(Duration), 1000000) as Duration\r\nFROM otel_traces\r\nWHERE\r\n  $__conditionalAll(TraceId IN (${trace_id:singlequote}),  $trace_id)\r\n  AND ServiceName IN (${serviceName:singlequote})\r\n  AND ServiceName != 'loadgenerator'\r\n  AND $__timeFilter(Timestamp)\r\nGROUP BY TraceId\r\nORDER BY Duration DESC\r\nLIMIT 100\r\n",
           "refId": "A",
           "round": "0s",
@@ -239,7 +239,7 @@
     {
       "datasource": {
         "type": "vertamedia-clickhouse-datasource",
-        "uid": "aebna5kluoqv4d"
+        "uid": "${datasource}"
       },
       "fieldConfig": {
         "defaults": {
@@ -259,8 +259,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -323,13 +322,17 @@
         "showHeader": true,
         "sortBy": []
       },
-      "pluginVersion": "11.4.0",
+      "pluginVersion": "12.0.0",
       "targets": [
         {
           "adHocFilters": [],
           "adHocValuesQuery": "",
           "add_metadata": true,
           "contextWindowSize": "10",
+          "datasource": {
+            "type": "vertamedia-clickhouse-datasource",
+            "uid": "${DS_VERTAMEDIA-CLICKHOUSE-DATASOURCE}"
+          },
           "editorMode": "builder",
           "extrapolate": true,
           "format": "table",
@@ -350,7 +353,7 @@
     {
       "datasource": {
         "type": "vertamedia-clickhouse-datasource",
-        "uid": "aebna5kluoqv4d"
+        "uid": "${datasource}"
       },
       "fieldConfig": {
         "defaults": {},
@@ -363,8 +366,21 @@
         "y": 10
       },
       "id": 1,
-      "options": {},
-      "pluginVersion": "11.4.0",
+      "options": {
+        "spanFilters": {
+          "criticalPathOnly": false,
+          "matchesOnly": false,
+          "serviceNameOperator": "=",
+          "spanNameOperator": "=",
+          "tags": [
+            {
+              "id": "1f47969c-ed0",
+              "operator": "="
+            }
+          ]
+        }
+      },
+      "pluginVersion": "12.0.0",
       "targets": [
         {
           "adHocFilters": [],
@@ -374,7 +390,7 @@
           "database": "system",
           "datasource": {
             "type": "vertamedia-clickhouse-datasource",
-            "uid": "aebna5kluoqv4d"
+            "uid": "${DS_VERTAMEDIA-CLICKHOUSE-DATASOURCE}"
           },
           "dateColDataType": "finish_date",
           "dateTimeColDataType": "start_time_us",
@@ -385,8 +401,8 @@
           "formattedQuery": "SELECT $timeSeries as t, count() FROM $table WHERE $timeFilter GROUP BY t ORDER BY t",
           "interval": "",
           "intervalFactor": 1,
-          "query": "WITH 'a9bee065-3c7d-13b3-8471-8e5b44324a75' as trace_id,\r\n  (SELECT min(Start) FROM \"default\".\"otel_traces_trace_id_ts\"\r\n    WHERE TraceId = trace_id) as trace_start,\r\n  (SELECT max(End) + 1 FROM \"default\".\"otel_traces_trace_id_ts\"\r\n    WHERE TraceId = trace_id) as trace_end\r\nSELECT \"TraceId\" as traceID,\r\n  \"SpanId\" as spanID,\r\n  \"ParentSpanId\" as parentSpanID,\r\n  \"ServiceName\" as serviceName,\r\n  \"SpanName\" as operationName,\r\n  \"Timestamp\" as startTime,\r\n  multiply(\"Duration\", 0.000001) as duration,\r\n  arrayMap(key -> map('key', key, 'value',\"SpanAttributes\"[key]),\r\n  mapKeys(\"SpanAttributes\")) as tags,\r\n  arrayMap(key -> map('key', key, 'value',\"ResourceAttributes\"[key]),\r\n  mapKeys(\"ResourceAttributes\")) as serviceTags\r\nFROM \"default\".\"otel_traces\"\r\nWHERE traceID = trace_id\r\n  AND startTime >= trace_start\r\n  AND startTime <= trace_end\r\nORDER BY startTime\r\nLIMIT 1000",
-          "rawQuery": "/* grafana dashboard=ClickHouse Otel Demo, user=1 */\nWITH 'a9bee065-3c7d-13b3-8471-8e5b44324a75' as trace_id,\r\n  (SELECT min(Start) FROM \"default\".\"otel_traces_trace_id_ts\"\r\n    WHERE TraceId = trace_id) as trace_start,\r\n  (SELECT max(End) + 1 FROM \"default\".\"otel_traces_trace_id_ts\"\r\n    WHERE TraceId = trace_id) as trace_end\r\nSELECT \"TraceId\" as traceID,\r\n  \"SpanId\" as spanID,\r\n  \"ParentSpanId\" as parentSpanID,\r\n  \"ServiceName\" as serviceName,\r\n  \"SpanName\" as operationName,\r\n  \"Timestamp\" as startTime,\r\n  multiply(\"Duration\", 0.000001) as duration,\r\n  arrayMap(key -> map('key', key, 'value',\"SpanAttributes\"[key]),\r\n  mapKeys(\"SpanAttributes\")) as tags,\r\n  arrayMap(key -> map('key', key, 'value',\"ResourceAttributes\"[key]),\r\n  mapKeys(\"ResourceAttributes\")) as serviceTags\r\nFROM \"default\".\"otel_traces\"\r\nWHERE traceID = trace_id\r\n  AND startTime >= trace_start\r\n  AND startTime <= trace_end\r\nORDER BY startTime\r\nLIMIT 1000",
+          "query": "WITH '$traceId' as trace_id,\r\n  (SELECT min(Start) FROM \"default\".\"otel_traces_trace_id_ts\"\r\n    WHERE TraceId = trace_id) as trace_start,\r\n  (SELECT max(End) + 1 FROM \"default\".\"otel_traces_trace_id_ts\"\r\n    WHERE TraceId = trace_id) as trace_end\r\nSELECT \"TraceId\" as traceID,\r\n  \"SpanId\" as spanID,\r\n  \"ParentSpanId\" as parentSpanID,\r\n  \"ServiceName\" as serviceName,\r\n  \"SpanName\" as operationName,\r\n  \"Timestamp\" as startTime,\r\n  \"Duration\" as duration,\r\n  arrayMap(key -> map('key', key, 'value',\"SpanAttributes\"[key]),\r\n  mapKeys(\"SpanAttributes\")) as tags,\r\n  \"ResourceAttributes\" as serviceTags\r\nFROM \"default\".\"otel_traces\"\r\nWHERE traceID = trace_id\r\n  AND startTime >= trace_start\r\n  AND startTime <= trace_end\r\nORDER BY startTime\r\nLIMIT 1000",
+          "rawQuery": "/* grafana dashboard=ClickHouse Otel Demo, user=0 */\nWITH '6a74ebba-c7ee-d999-c813-24887343f167' as trace_id,\r\n  (SELECT min(Start) FROM \"default\".\"otel_traces_trace_id_ts\"\r\n    WHERE TraceId = trace_id) as trace_start,\r\n  (SELECT max(End) + 1 FROM \"default\".\"otel_traces_trace_id_ts\"\r\n    WHERE TraceId = trace_id) as trace_end\r\nSELECT \"TraceId\" as traceID,\r\n  \"SpanId\" as spanID,\r\n  \"ParentSpanId\" as parentSpanID,\r\n  \"ServiceName\" as serviceName,\r\n  \"SpanName\" as operationName,\r\n  \"Timestamp\" as startTime,\r\n  \"Duration\" as duration,\r\n  arrayMap(key -> map('key', key, 'value',\"SpanAttributes\"[key]),\r\n  mapKeys(\"SpanAttributes\")) as tags,\r\n  \"ResourceAttributes\" as serviceTags\r\nFROM \"default\".\"otel_traces\"\r\nWHERE traceID = trace_id\r\n  AND startTime >= trace_start\r\n  AND startTime <= trace_end\r\nORDER BY startTime\r\nLIMIT 1000",
           "refId": "A",
           "round": "0s",
           "showFormattedSQL": true,
@@ -400,24 +416,38 @@
     }
   ],
   "preload": false,
-  "schemaVersion": 40,
+  "schemaVersion": 41,
   "tags": [],
   "templating": {
     "list": [
       {
         "current": {
-          "text": "db7f4d2a-0a7b-f512-2e0c-e587807015b9",
-          "value": "db7f4d2a-0a7b-f512-2e0c-e587807015b9"
+          "text": "85ec8de5-ab89-fe1b-c70d-38e3adde5fc7",
+          "value": "85ec8de5-ab89-fe1b-c70d-38e3adde5fc7"
         },
-        "definition": "SELECT TraceId FROM otel_traces_trace_id_ts",
+        "definition": "SELECT TraceId FROM clusterAllReplicas('{cluster}', default, otel_traces)",
         "description": "",
         "label": "traceId",
         "name": "traceId",
         "options": [],
-        "query": "SELECT TraceId FROM otel_traces_trace_id_ts",
+        "query": "SELECT TraceId FROM clusterAllReplicas('{cluster}', default, otel_traces)",
         "refresh": 1,
         "regex": "",
         "type": "query"
+      },
+      {
+        "current": {
+          "text": "ClickHouse",
+          "value": "PDEE91DDB90597936"
+        },
+        "description": "",
+        "label": "datasource",
+        "name": "datasource",
+        "options": [],
+        "query": "vertamedia-clickhouse-datasource",
+        "refresh": 1,
+        "regex": "",
+        "type": "datasource"
       }
     ]
   },
@@ -427,8 +457,7 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "ClickHouse Otel Demo",
-  "uid": "eebngnv29ds00e",
-  "version": 19,
-  "weekStart": ""
+  "title": "Query Trace Details",
+  "uid": "16d8af9e-4c74-4ae3-b8c3-993c7dd0c6db",
+  "version": 1
 }

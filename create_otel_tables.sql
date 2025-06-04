@@ -1,10 +1,10 @@
 -- Create a distributed table for system.opentelemetry_span_log
-CREATE TABLE IF NOT EXISTS default.distributed_opentelemetry_span_log ON CLUSTER 'cluster_1S_2R'
+CREATE TABLE IF NOT EXISTS default.distributed_opentelemetry_span_log ON CLUSTER 'cluster_2S_2R'
 AS system.opentelemetry_span_log
-ENGINE = Distributed('cluster_1S_2R', 'system', 'opentelemetry_span_log', rand());
+ENGINE = Distributed('cluster_2S_2R', 'system', 'opentelemetry_span_log', rand());
 
 -- Create a view for trace ID timestamps
-CREATE OR REPLACE VIEW default.otel_traces_trace_id_ts ON CLUSTER 'cluster_1S_2R'
+CREATE OR REPLACE VIEW default.otel_traces_trace_id_ts ON CLUSTER 'cluster_2S_2R'
 (
     `TraceId` UUID,
     `Start` UInt64,
@@ -18,7 +18,7 @@ FROM default.distributed_opentelemetry_span_log
 GROUP BY TraceId;
 
 -- Create a view for easier querying of trace data
-CREATE OR REPLACE VIEW default.otel_traces ON CLUSTER 'cluster_1S_2R'
+CREATE OR REPLACE VIEW default.otel_traces ON CLUSTER 'cluster_2S_2R'
 (
     `TraceId` UUID,
     `SpanId` UInt64,

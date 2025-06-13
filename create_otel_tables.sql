@@ -77,7 +77,7 @@ ENGINE = ReplicatedMergeTree
 PARTITION BY toYYYYMM(created_at)
 ORDER BY (app, user_id, session_id, created_at);
 
-CREATE TABLE OR REPLACE sessions  ON CLUSTER '{cluster}'
+CREATE OR REPLACE TABLE sessions  ON CLUSTER '{cluster}'
 (
     `app` LowCardinality(String),
     `user_id` String,

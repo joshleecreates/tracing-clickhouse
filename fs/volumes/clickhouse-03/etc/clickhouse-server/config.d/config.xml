@@ -35,8 +35,10 @@
     <distributed_ddl>
         <path>/clickhouse/task_queue/ddl</path>
     </distributed_ddl>
-    <remote_servers >
-        <cluster_2S_2R>
+    <remote_servers>
+
+	    <cluster_2S_2R>
+		    <secret>otel</secret>
             <shard>
                 <internal_replication>true</internal_replication>
                 <replica>

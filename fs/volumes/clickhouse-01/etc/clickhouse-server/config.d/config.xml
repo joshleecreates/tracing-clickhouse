@@ -36,26 +36,35 @@
         <path>/clickhouse/task_queue/ddl</path>
     </distributed_ddl>
     <remote_servers >
-        <cluster_2S_2R>
+	    <cluster_2S_2R>
+            <secret>otel</secret>
             <shard>
                 <internal_replication>true</internal_replication>
                 <replica>
                     <host>clickhouse-01</host>
-                    <port>9000</port>
+		   
+		  
+		    <port>9000</port>
                 </replica>
                 <replica>
-                    <host>clickhouse-02</host>
+			<host>clickhouse-02</host>
+	
+
                     <port>9000</port>
 	        </replica>
 	     </shard>
              <shard>
                 <internal_replication>true</internal_replication>
                 <replica>
-                    <host>clickhouse-03</host>
+			<host>clickhouse-03</host>
+
+
                     <port>9000</port>
                 </replica>
                 <replica>
-                    <host>clickhouse-04</host>
+			<host>clickhouse-04</host>
+
+
                     <port>9000</port>
                 </replica>
             </shard>

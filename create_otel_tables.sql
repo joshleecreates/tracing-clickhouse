@@ -1,7 +1,7 @@
 -- Create a distributed table for system.opentelemetry_span_log
 CREATE TABLE IF NOT EXISTS default.distributed_opentelemetry_span_log ON CLUSTER '{cluster}'
 AS system.opentelemetry_span_log
-ENGINE = Distributed('{cluster}', 'system', 'opentelemetry_span_log');
+ENGINE = Distributed('all_sharded', 'system', 'opentelemetry_span_log');
 
 -- Create a view for easier querying of trace data
 CREATE OR REPLACE VIEW default.otel_traces ON CLUSTER '{cluster}'
@@ -58,8 +58,8 @@ AS SELECT
     TraceId,
     coalesce(nullif(ResourceAttributes['clickhouse.initial_query_id'], ''), SpanAttributes['clickhouse.query_id']) query_id,
     SpanAttributes['db.statement'] query,
-    Timestamp Start,
-    Timestamp + Duration AS End
+    Timestamp AS Start,
+    FinishTimestamp AS End
 FROM  default.otel_traces
 WHERE NOT mapContains(ResourceAttributes, 'clickhouse.initial_query_id') AND SpanName = 'query';
 

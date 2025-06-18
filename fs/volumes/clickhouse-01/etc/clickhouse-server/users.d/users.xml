@@ -11,7 +11,8 @@
             <readonly>1</readonly>
         </readonly>
         <otel>
-            <log_queries>1</log_queries>
+		<log_queries>1</log_queries>
+		<opentelemetry_trace_processors>1</opentelemetry_trace_processors>
             <opentelemetry_start_trace_probability>1</opentelemetry_start_trace_probability>
         </otel>
     </profiles>

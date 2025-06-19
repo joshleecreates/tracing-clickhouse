@@ -1,0 +1,553 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": 2,
+  "links": [],
+  "panels": [
+    {
+      "datasource": {
+        "type": "vertamedia-clickhouse-datasource",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.8,
+            "drawStyle": "bars",
+            "fillOpacity": 7,
+            "gradientMode": "hue",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 7,
+            "pointSize": 1,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 4,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.0.1",
+      "targets": [
+        {
+          "adHocFilters": [],
+          "adHocValuesQuery": "",
+          "add_metadata": true,
+          "contextWindowSize": "10",
+          "database": "default",
+          "datasource": {
+            "type": "vertamedia-clickhouse-datasource",
+            "uid": "${DS_VERTAMEDIA-CLICKHOUSE-DATASOURCE}"
+          },
+          "dateTimeColDataType": "Timestamp",
+          "dateTimeType": "DATETIME64",
+          "editorMode": "sql",
+          "editorType": "sql",
+          "extrapolate": true,
+          "format": 1,
+          "formattedQuery": "SELECT $timeSeries as t, count() FROM $table WHERE $timeFilter GROUP BY t ORDER BY t",
+          "interval": "",
+          "intervalFactor": 1,
+          "meta": {
+            "builderOptions": {
+              "columns": [],
+              "database": "default",
+              "filters": [
+                {
+                  "condition": "AND",
+                  "filterType": "custom",
+                  "key": "Timestamp",
+                  "operator": "WITH IN DASHBOARD TIME RANGE",
+                  "restrictToFields": [
+                    {
+                      "label": "Timestamp",
+                      "name": "Timestamp",
+                      "picklistValues": [],
+                      "type": "DateTime64(9)"
+                    }
+                  ],
+                  "type": "datetime"
+                }
+              ],
+              "limit": 100,
+              "mode": "list",
+              "orderBy": [],
+              "queryType": "table",
+              "table": "otel_traces"
+            }
+          },
+          "pluginVersion": "4.0.6",
+          "query": "SELECT $timeSeries as t, count() FROM $table WHERE $timeFilter GROUP BY t ORDER BY t",
+          "queryType": "table",
+          "rawQuery": "/* grafana dashboard=Query Trace Details, user=0 */\nSELECT (intDiv(toFloat64(Timestamp) * 1000, (5 * 1000)) * (5 * 1000)) as t, count() FROM default.otel_traces WHERE Timestamp >= toDateTime64(1750058606,3) AND Timestamp <= toDateTime64(1750069406,3) GROUP BY t ORDER BY t",
+          "rawSql": "SELECT\r\n  min(Timestamp) as timestamp,\r\n  TraceId as `Trace ID`,\r\n  argMin(ServiceName, Timestamp) as `Service Name`,\r\n  divide(max(Duration), 1000000) as Duration\r\nFROM otel_traces\r\nWHERE\r\n  $__conditionalAll(TraceId IN (${trace_id:singlequote}),  $trace_id)\r\n  AND ServiceName IN (${serviceName:singlequote})\r\n  AND ServiceName != 'loadgenerator'\r\n  AND $__timeFilter(Timestamp)\r\nGROUP BY TraceId\r\nORDER BY Duration DESC\r\nLIMIT 100\r\n",
+          "refId": "A",
+          "round": "0s",
+          "showFormattedSQL": true,
+          "skip_comments": true,
+          "table": "otel_traces",
+          "useWindowFuncForMacros": true
+        }
+      ],
+      "title": "Traces",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "vertamedia-clickhouse-datasource",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "left",
+            "cellOptions": {
+              "type": "color-text",
+              "wrapText": false
+            },
+            "inspect": true
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "sql"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 547
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "auto",
+                  "wrapText": true
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "StartTime"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 219
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "hostname()"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 115
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 13,
+        "w": 24,
+        "x": 0,
+        "y": 6
+      },
+      "id": 2,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "Start"
+          }
+        ]
+      },
+      "pluginVersion": "12.0.1",
+      "targets": [
+        {
+          "adHocFilters": [],
+          "adHocValuesQuery": "",
+          "add_metadata": true,
+          "contextWindowSize": "10",
+          "database": "default",
+          "datasource": {
+            "type": "vertamedia-clickhouse-datasource",
+            "uid": "${datasource}"
+          },
+          "dateTimeColDataType": "Start",
+          "dateTimeType": "DATETIME64",
+          "editorMode": "sql",
+          "extrapolate": true,
+          "format": "table",
+          "formattedQuery": "SELECT $timeSeries as t, count() FROM $table WHERE $timeFilter GROUP BY t ORDER BY t",
+          "interval": "",
+          "intervalFactor": 1,
+          "query": " SELECT hostname(), \r\n        query AS sql,\r\n        query_id,\r\n      Start,\r\n      End\r\nFROM otel_traces_trace_id_ts\r\n WHERE $timeFilter",
+          "rawQuery": "/* grafana dashboard=Query Trace Details, user=0 */\nSELECT hostname(), \r\n        query AS sql,\r\n        query_id,\r\n      Start,\r\n      End\r\nFROM otel_traces_trace_id_ts\r\n WHERE Start >= toDateTime64(1750058606,3) AND Start <= toDateTime64(1750069406,3)",
+          "refId": "A",
+          "round": "0s",
+          "showFormattedSQL": true,
+          "skip_comments": true,
+          "table": "otel_traces_trace_id_ts",
+          "useWindowFuncForMacros": true
+        }
+      ],
+      "title": "Available traced queries",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "vertamedia-clickhouse-datasource",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "left",
+            "cellOptions": {
+              "type": "auto",
+              "wrapText": true
+            },
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "sql"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 792
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "auto",
+                  "wrapText": true
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "StartTime"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 219
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "query"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 712
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Start"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 192
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 24,
+        "x": 0,
+        "y": 19
+      },
+      "id": 5,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": false,
+            "displayName": "query"
+          }
+        ]
+      },
+      "pluginVersion": "12.0.1",
+      "targets": [
+        {
+          "adHocFilters": [],
+          "adHocValuesQuery": "",
+          "add_metadata": true,
+          "contextWindowSize": "10",
+          "datasource": {
+            "type": "vertamedia-clickhouse-datasource",
+            "uid": "${DS_VERTAMEDIA-CLICKHOUSE-DATASOURCE}"
+          },
+          "editorMode": "builder",
+          "extrapolate": true,
+          "format": "table",
+          "formattedQuery": "SELECT $timeSeries as t, count() FROM $table WHERE $timeFilter GROUP BY t ORDER BY t",
+          "interval": "",
+          "intervalFactor": 1,
+          "query": "SELECT query_id, query, Start, End FROM default.otel_traces_trace_id_ts WHERE query_id = '$queryId'",
+          "rawQuery": "/* grafana dashboard=Query Trace Details, user=0 */\nSELECT query_id, query, Start, End FROM default.otel_traces_trace_id_ts WHERE query_id = '3b7a8feb-73ab-4d9f-bf60-d13814d50766'",
+          "refId": "A",
+          "round": "0s",
+          "skip_comments": true,
+          "useWindowFuncForMacros": true
+        }
+      ],
+      "title": "Traced query",
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "vertamedia-clickhouse-datasource",
+        "uid": "${datasource}"
+      },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 20,
+        "w": 24,
+        "x": 0,
+        "y": 23
+      },
+      "id": 1,
+      "options": {
+        "spanFilters": {
+          "criticalPathOnly": false,
+          "matchesOnly": false,
+          "serviceNameOperator": "=",
+          "spanNameOperator": "=",
+          "tags": [
+            {
+              "id": "1f47969c-ed0",
+              "operator": "="
+            }
+          ]
+        }
+      },
+      "pluginVersion": "12.0.1",
+      "targets": [
+        {
+          "adHocFilters": [],
+          "adHocValuesQuery": "",
+          "add_metadata": true,
+          "contextWindowSize": "10",
+          "database": "system",
+          "datasource": {
+            "type": "vertamedia-clickhouse-datasource",
+            "uid": "${datasource}"
+          },
+          "dateColDataType": "finish_date",
+          "dateTimeColDataType": "start_time_us",
+          "dateTimeType": "TIMESTAMP64_9",
+          "editorMode": "sql",
+          "extrapolate": true,
+          "format": "traces",
+          "formattedQuery": "SELECT $timeSeries as t, count() FROM $table WHERE $timeFilter GROUP BY t ORDER BY t",
+          "interval": "",
+          "intervalFactor": 1,
+          "query": "WITH \r\n  (SELECT min(Start) FROM \"default\".\"otel_traces_trace_id_ts\"\r\n    WHERE query_id = '$queryId') as trace_start,\r\n  (SELECT max(End) + 1 FROM \"default\".\"otel_traces_trace_id_ts\"\r\n    WHERE query_id = '$queryId') as trace_end\r\nSELECT \"TraceId\" as traceID,\r\n  \"SpanId\" as spanID,\r\n  \"ParentSpanId\" as parentSpanID,\r\n  \"ServiceName\" as serviceName,\r\n  \"SpanName\" as operationName,\r\n  \"Timestamp\" as startTime,\r\n  \"Duration\" as duration,\r\n  arrayMap(key -> map('key', key, 'value',\"SpanAttributes\"[key]),\r\n  mapKeys(\"SpanAttributes\")) as tags,\r\n  \"ResourceAttributes\" as serviceTags\r\nFROM \"default\".\"otel_traces\"\r\nWHERE TraceId IN (SELECT DISTINCT TraceId FROM otel_traces WHERE ResourceAttributes['clickhouse.initial_query_id'] = '$queryId'  OR ResourceAttributes['clickhouse.query_id'] = '$queryId') --AND   `FinishDate` = toDate(trace_end)\r\n --AND startTime >= trace_start\r\n  --AND startTime <= trace_end AND `FinishDate` = toDate(trace_end)\r\n --AND startTime >= trace_start\r\n -- AND startTime <= trace_end\r\nORDER BY startTime\r\nLIMIT 1000",
+          "rawQuery": "/* grafana dashboard=Query Trace Details, user=0 */\nWITH \r\n  (SELECT min(Start) FROM \"default\".\"otel_traces_trace_id_ts\"\r\n    WHERE query_id = '4d4746bf-4982-489a-b04f-b2f576096b0b') as trace_start,\r\n  (SELECT max(End) + 1 FROM \"default\".\"otel_traces_trace_id_ts\"\r\n    WHERE query_id = '4d4746bf-4982-489a-b04f-b2f576096b0b') as trace_end\r\nSELECT \"TraceId\" as traceID,\r\n  \"SpanId\" as spanID,\r\n  \"ParentSpanId\" as parentSpanID,\r\n  \"ServiceName\" as serviceName,\r\n  \"SpanName\" as operationName,\r\n  \"Timestamp\" as startTime,\r\n  \"Duration\" as duration,\r\n  arrayMap(key -> map('key', key, 'value',\"SpanAttributes\"[key]),\r\n  mapKeys(\"SpanAttributes\")) as tags,\r\n  \"ResourceAttributes\" as serviceTags\r\nFROM \"default\".\"otel_traces\"\r\nWHERE TraceId IN (SELECT DISTINCT TraceId FROM otel_traces WHERE ResourceAttributes['clickhouse.initial_query_id'] = '4d4746bf-4982-489a-b04f-b2f576096b0b'  OR ResourceAttributes['clickhouse.query_id'] = '4d4746bf-4982-489a-b04f-b2f576096b0b') \n \n  \n \n \nORDER BY startTime\r\nLIMIT 1000",
+          "refId": "A",
+          "round": "0s",
+          "showFormattedSQL": true,
+          "skip_comments": true,
+          "table": "opentelemetry_span_log",
+          "useWindowFuncForMacros": true
+        }
+      ],
+      "title": "Trace detail",
+      "type": "traces"
+    }
+  ],
+  "preload": false,
+  "schemaVersion": 41,
+  "tags": [],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "text": "3b7a8feb-73ab-4d9f-bf60-d13814d50766",
+          "value": "3b7a8feb-73ab-4d9f-bf60-d13814d50766"
+        },
+        "definition": "SELECT query_id FROM otel_traces_trace_id_ts",
+        "description": "",
+        "label": "queryId",
+        "name": "queryId",
+        "options": [],
+        "query": "SELECT query_id FROM otel_traces_trace_id_ts",
+        "refresh": 1,
+        "regex": "",
+        "type": "query"
+      },
+      {
+        "current": {
+          "text": "antalya",
+          "value": "eep4e8c1so54wd"
+        },
+        "description": "",
+        "label": "datasource",
+        "name": "datasource",
+        "options": [],
+        "query": "vertamedia-clickhouse-datasource",
+        "refresh": 1,
+        "regex": "",
+        "type": "datasource"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-3h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Query Trace Details",
+  "uid": "16d8af9e-4c74-4ae3-b8c3-993c7dd0c6dc",
+  "version": 8
+}

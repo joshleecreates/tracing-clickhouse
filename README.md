@@ -61,7 +61,16 @@ AS SELECT
     (start_time_us / 1000) / 1000 AS Timestamp,
     ((finish_time_us - start_time_us) / 1000) / 1000 AS Duration,
     attribute AS SpanAttributes,
-    attribute AS ResourceAttributes
+    mapUpdate(
+        mapUpdate(
+            mapUpdate(
+                attribute, 
+                map('server.address', toString(hostname))
+            ),
+            map('server.shard', getMacro('shard'))
+        ),
+        map('server.replica', getMacro('replica'))
+    ) AS ResourceAttributes
 FROM system.opentelemetry_span_log 
 ```
 
@@ -79,3 +88,52 @@ clickhouse-client --opentelemetry-traceparent "00-4bf92f3577b34da6a3ce929d0e0e47
 [Maciej's query templates](https://www.notion.so/Templates-4cdc78da6450418791a2389eb3bd6337)
 [Clickhouse documentation on processors](https://clickhouse.com/docs/en/development/architecture#processors)
 [Proccessors header file](https://github.com/ClickHouse/ClickHouse/blob/5280c1f9a99efb2efbf72b7d060182e0a2bb1096/src/Processors/IProcessor.h#L34C5-L34C86)
+
+## New Views for Antalya (WIP)
+
+```
+CREATE OR REPLACE VIEW default.otel_traces_trace_id_ts ON CLUSTER '{cluster}'
+(
+    `TraceId` UUID,
+    `Start` UInt64,
+    `End` UInt64
+)
+AS SELECT
+    trace_id AS TraceId,
+    min(start_time_us / 1000) AS Start,
+    max(finish_time_us  / 1000) AS End
+FROM clusterAllReplicas('{cluster}', system.opentelemetry_span_log)
+GROUP BY TraceId;
+
+-- Create a view for easier querying of trace data
+CREATE OR REPLACE VIEW default.otel_traces ON CLUSTER '{cluster}'
+(
+    `TraceId` UUID,
+    `SpanId` UInt64,
+    `ParentSpanId` UInt64,
+    `ServiceName` String,
+    `SpanName` LowCardinality(String),
+    `Timestamp` Float64,
+    `Duration` Float64,
+    `SpanAttributes` Map(LowCardinality(String), String),
+    `ResourceAttributes` Map(LowCardinality(String), String),
+    `Hostname` String,
+    `Shard` String,
+    `Replica` String
+)
+AS SELECT
+    trace_id AS TraceId,
+    span_id AS SpanId,
+    parent_span_id AS ParentSpanId,
+    'ClickHouse' AS ServiceName,
+    operation_name AS SpanName,
+    (start_time_us / 1000) AS Timestamp,
+    ((finish_time_us - start_time_us) / 1000) AS Duration,
+    attribute AS SpanAttributes,
+    mapUpdate(
+        attribute,
+        map('server.address', toString(hostname))
+    ) AS ResourceAttributes,
+    hostname AS Hostname
+FROM clusterAllReplicas('{cluster}', system.opentelemetry_span_log);
+```

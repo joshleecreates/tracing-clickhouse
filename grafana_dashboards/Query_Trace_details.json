@@ -18,7 +18,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 2,
+  "id": null,
   "links": [],
   "panels": [
     {
@@ -99,63 +99,18 @@
       "pluginVersion": "12.0.1",
       "targets": [
         {
-          "adHocFilters": [],
-          "adHocValuesQuery": "",
-          "add_metadata": true,
-          "contextWindowSize": "10",
           "database": "default",
           "datasource": {
             "type": "vertamedia-clickhouse-datasource",
-            "uid": "${DS_VERTAMEDIA-CLICKHOUSE-DATASOURCE}"
+            "uid": "${datasource}"
           },
           "dateTimeColDataType": "Timestamp",
           "dateTimeType": "DATETIME64",
-          "editorMode": "sql",
-          "editorType": "sql",
-          "extrapolate": true,
-          "format": 1,
-          "formattedQuery": "SELECT $timeSeries as t, count() FROM $table WHERE $timeFilter GROUP BY t ORDER BY t",
-          "interval": "",
-          "intervalFactor": 1,
-          "meta": {
-            "builderOptions": {
-              "columns": [],
-              "database": "default",
-              "filters": [
-                {
-                  "condition": "AND",
-                  "filterType": "custom",
-                  "key": "Timestamp",
-                  "operator": "WITH IN DASHBOARD TIME RANGE",
-                  "restrictToFields": [
-                    {
-                      "label": "Timestamp",
-                      "name": "Timestamp",
-                      "picklistValues": [],
-                      "type": "DateTime64(9)"
-                    }
-                  ],
-                  "type": "datetime"
-                }
-              ],
-              "limit": 100,
-              "mode": "list",
-              "orderBy": [],
-              "queryType": "table",
-              "table": "otel_traces"
-            }
-          },
-          "pluginVersion": "4.0.6",
-          "query": "SELECT $timeSeries as t, count() FROM $table WHERE $timeFilter GROUP BY t ORDER BY t",
-          "queryType": "table",
-          "rawQuery": "/* grafana dashboard=Query Trace Details, user=0 */\nSELECT (intDiv(toFloat64(Timestamp) * 1000, (5 * 1000)) * (5 * 1000)) as t, count() FROM default.otel_traces WHERE Timestamp >= toDateTime64(1750058606,3) AND Timestamp <= toDateTime64(1750069406,3) GROUP BY t ORDER BY t",
-          "rawSql": "SELECT\r\n  min(Timestamp) as timestamp,\r\n  TraceId as `Trace ID`,\r\n  argMin(ServiceName, Timestamp) as `Service Name`,\r\n  divide(max(Duration), 1000000) as Duration\r\nFROM otel_traces\r\nWHERE\r\n  $__conditionalAll(TraceId IN (${trace_id:singlequote}),  $trace_id)\r\n  AND ServiceName IN (${serviceName:singlequote})\r\n  AND ServiceName != 'loadgenerator'\r\n  AND $__timeFilter(Timestamp)\r\nGROUP BY TraceId\r\nORDER BY Duration DESC\r\nLIMIT 100\r\n",
+          "format": "time_series",
+          "query": "SELECT\n  $timeSeries as t,\n  count() as count\nFROM otel_traces\nWHERE $timeFilter\nGROUP BY t\nORDER BY t",
+          "rawSql": "SELECT\n  $timeSeries as t,\n  count() as count\nFROM otel_traces\nWHERE $timeFilter\nGROUP BY t\nORDER BY t",
           "refId": "A",
-          "round": "0s",
-          "showFormattedSQL": true,
-          "skip_comments": true,
-          "table": "otel_traces",
-          "useWindowFuncForMacros": true
+          "table": "otel_traces"
         }
       ],
       "title": "Traces",
@@ -267,10 +222,6 @@
       "pluginVersion": "12.0.1",
       "targets": [
         {
-          "adHocFilters": [],
-          "adHocValuesQuery": "",
-          "add_metadata": true,
-          "contextWindowSize": "10",
           "database": "default",
           "datasource": {
             "type": "vertamedia-clickhouse-datasource",
@@ -278,20 +229,11 @@
           },
           "dateTimeColDataType": "Start",
           "dateTimeType": "DATETIME64",
-          "editorMode": "sql",
-          "extrapolate": true,
           "format": "table",
-          "formattedQuery": "SELECT $timeSeries as t, count() FROM $table WHERE $timeFilter GROUP BY t ORDER BY t",
-          "interval": "",
-          "intervalFactor": 1,
-          "query": " SELECT hostname(), \r\n        query AS sql,\r\n        query_id,\r\n      Start,\r\n      End\r\nFROM otel_traces_trace_id_ts\r\n WHERE $timeFilter",
-          "rawQuery": "/* grafana dashboard=Query Trace Details, user=0 */\nSELECT hostname(), \r\n        query AS sql,\r\n        query_id,\r\n      Start,\r\n      End\r\nFROM otel_traces_trace_id_ts\r\n WHERE Start >= toDateTime64(1750058606,3) AND Start <= toDateTime64(1750069406,3)",
+          "query": "SELECT hostname(),\n  query AS sql,\n  query_id,\n  Start,\n  End\nFROM otel_traces_trace_id_ts\nWHERE $timeFilter",
+          "rawSql": "SELECT hostname(),\n  query AS sql,\n  query_id,\n  Start,\n  End\nFROM otel_traces_trace_id_ts\nWHERE $timeFilter",
           "refId": "A",
-          "round": "0s",
-          "showFormattedSQL": true,
-          "skip_comments": true,
-          "table": "otel_traces_trace_id_ts",
-          "useWindowFuncForMacros": true
+          "table": "otel_traces_trace_id_ts"
         }
       ],
       "title": "Available traced queries",
@@ -415,26 +357,16 @@
       "pluginVersion": "12.0.1",
       "targets": [
         {
-          "adHocFilters": [],
-          "adHocValuesQuery": "",
-          "add_metadata": true,
-          "contextWindowSize": "10",
+          "database": "default",
           "datasource": {
             "type": "vertamedia-clickhouse-datasource",
-            "uid": "${DS_VERTAMEDIA-CLICKHOUSE-DATASOURCE}"
+            "uid": "${datasource}"
           },
-          "editorMode": "builder",
-          "extrapolate": true,
           "format": "table",
-          "formattedQuery": "SELECT $timeSeries as t, count() FROM $table WHERE $timeFilter GROUP BY t ORDER BY t",
-          "interval": "",
-          "intervalFactor": 1,
-          "query": "SELECT query_id, query, Start, End FROM default.otel_traces_trace_id_ts WHERE query_id = '$queryId'",
-          "rawQuery": "/* grafana dashboard=Query Trace Details, user=0 */\nSELECT query_id, query, Start, End FROM default.otel_traces_trace_id_ts WHERE query_id = '3b7a8feb-73ab-4d9f-bf60-d13814d50766'",
+          "query": "SELECT query_id, query, Start, End FROM otel_traces_trace_id_ts WHERE query_id = '$queryId'",
+          "rawSql": "SELECT query_id, query, Start, End FROM otel_traces_trace_id_ts WHERE query_id = '$queryId'",
           "refId": "A",
-          "round": "0s",
-          "skip_comments": true,
-          "useWindowFuncForMacros": true
+          "table": "otel_traces_trace_id_ts"
         }
       ],
       "title": "Traced query",
@@ -473,32 +405,16 @@
       "pluginVersion": "12.0.1",
       "targets": [
         {
-          "adHocFilters": [],
-          "adHocValuesQuery": "",
-          "add_metadata": true,
-          "contextWindowSize": "10",
-          "database": "system",
+          "database": "default",
           "datasource": {
             "type": "vertamedia-clickhouse-datasource",
             "uid": "${datasource}"
           },
-          "dateColDataType": "finish_date",
-          "dateTimeColDataType": "start_time_us",
-          "dateTimeType": "TIMESTAMP64_9",
-          "editorMode": "sql",
-          "extrapolate": true,
           "format": "traces",
-          "formattedQuery": "SELECT $timeSeries as t, count() FROM $table WHERE $timeFilter GROUP BY t ORDER BY t",
-          "interval": "",
-          "intervalFactor": 1,
-          "query": "WITH \r\n  (SELECT min(Start) FROM \"default\".\"otel_traces_trace_id_ts\"\r\n    WHERE query_id = '$queryId') as trace_start,\r\n  (SELECT max(End) + 1 FROM \"default\".\"otel_traces_trace_id_ts\"\r\n    WHERE query_id = '$queryId') as trace_end\r\nSELECT \"TraceId\" as traceID,\r\n  \"SpanId\" as spanID,\r\n  \"ParentSpanId\" as parentSpanID,\r\n  \"ServiceName\" as serviceName,\r\n  \"SpanName\" as operationName,\r\n  \"Timestamp\" as startTime,\r\n  \"Duration\" as duration,\r\n  arrayMap(key -> map('key', key, 'value',\"SpanAttributes\"[key]),\r\n  mapKeys(\"SpanAttributes\")) as tags,\r\n  \"ResourceAttributes\" as serviceTags\r\nFROM \"default\".\"otel_traces\"\r\nWHERE TraceId IN (SELECT DISTINCT TraceId FROM otel_traces WHERE ResourceAttributes['clickhouse.initial_query_id'] = '$queryId'  OR ResourceAttributes['clickhouse.query_id'] = '$queryId') --AND   `FinishDate` = toDate(trace_end)\r\n --AND startTime >= trace_start\r\n  --AND startTime <= trace_end AND `FinishDate` = toDate(trace_end)\r\n --AND startTime >= trace_start\r\n -- AND startTime <= trace_end\r\nORDER BY startTime\r\nLIMIT 1000",
-          "rawQuery": "/* grafana dashboard=Query Trace Details, user=0 */\nWITH \r\n  (SELECT min(Start) FROM \"default\".\"otel_traces_trace_id_ts\"\r\n    WHERE query_id = '4d4746bf-4982-489a-b04f-b2f576096b0b') as trace_start,\r\n  (SELECT max(End) + 1 FROM \"default\".\"otel_traces_trace_id_ts\"\r\n    WHERE query_id = '4d4746bf-4982-489a-b04f-b2f576096b0b') as trace_end\r\nSELECT \"TraceId\" as traceID,\r\n  \"SpanId\" as spanID,\r\n  \"ParentSpanId\" as parentSpanID,\r\n  \"ServiceName\" as serviceName,\r\n  \"SpanName\" as operationName,\r\n  \"Timestamp\" as startTime,\r\n  \"Duration\" as duration,\r\n  arrayMap(key -> map('key', key, 'value',\"SpanAttributes\"[key]),\r\n  mapKeys(\"SpanAttributes\")) as tags,\r\n  \"ResourceAttributes\" as serviceTags\r\nFROM \"default\".\"otel_traces\"\r\nWHERE TraceId IN (SELECT DISTINCT TraceId FROM otel_traces WHERE ResourceAttributes['clickhouse.initial_query_id'] = '4d4746bf-4982-489a-b04f-b2f576096b0b'  OR ResourceAttributes['clickhouse.query_id'] = '4d4746bf-4982-489a-b04f-b2f576096b0b') \n \n  \n \n \nORDER BY startTime\r\nLIMIT 1000",
+          "query": "SELECT\n  lower(hex(trace_id)) as traceID,\n  lower(hex(span_id)) as spanID,\n  if(parent_span_id = 0, '', lower(hex(parent_span_id))) as parentSpanID,\n  'ClickHouse' as serviceName,\n  operation_name as operationName,\n  intDiv(start_time_us, 1000) as startTime,\n  (finish_time_us - start_time_us) as duration,\n  attribute as tags,\n  map('server.address', hostname) as serviceTags\nFROM default.distributed_opentelemetry_span_log\nWHERE trace_id GLOBAL IN (\n  SELECT DISTINCT trace_id\n  FROM default.distributed_opentelemetry_span_log\n  WHERE attribute['clickhouse.query_id'] = '$queryId'\n)\nORDER BY start_time_us\nLIMIT 1000",
+          "rawSql": "SELECT\n  lower(hex(trace_id)) as traceID,\n  lower(hex(span_id)) as spanID,\n  if(parent_span_id = 0, '', lower(hex(parent_span_id))) as parentSpanID,\n  'ClickHouse' as serviceName,\n  operation_name as operationName,\n  intDiv(start_time_us, 1000) as startTime,\n  (finish_time_us - start_time_us) as duration,\n  attribute as tags,\n  map('server.address', hostname) as serviceTags\nFROM default.distributed_opentelemetry_span_log\nWHERE trace_id GLOBAL IN (\n  SELECT DISTINCT trace_id\n  FROM default.distributed_opentelemetry_span_log\n  WHERE attribute['clickhouse.query_id'] = '$queryId'\n)\nORDER BY start_time_us\nLIMIT 1000",
           "refId": "A",
-          "round": "0s",
-          "showFormattedSQL": true,
-          "skip_comments": true,
-          "table": "opentelemetry_span_log",
-          "useWindowFuncForMacros": true
+          "table": "distributed_opentelemetry_span_log"
         }
       ],
       "title": "Trace detail",
@@ -511,10 +427,7 @@
   "templating": {
     "list": [
       {
-        "current": {
-          "text": "3b7a8feb-73ab-4d9f-bf60-d13814d50766",
-          "value": "3b7a8feb-73ab-4d9f-bf60-d13814d50766"
-        },
+        "current": {},
         "definition": "SELECT query_id FROM otel_traces_trace_id_ts",
         "description": "",
         "label": "queryId",
@@ -526,10 +439,7 @@
         "type": "query"
       },
       {
-        "current": {
-          "text": "antalya",
-          "value": "eep4e8c1so54wd"
-        },
+        "current": {},
         "description": "",
         "label": "datasource",
         "name": "datasource",
@@ -549,5 +459,5 @@
   "timezone": "browser",
   "title": "Query Trace Details",
   "uid": "16d8af9e-4c74-4ae3-b8c3-993c7dd0c6dc",
-  "version": 8
+  "version": null
 }
